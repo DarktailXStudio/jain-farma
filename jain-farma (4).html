@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jain Farma — Online Medical Store</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<style>
+  :root{
+    --bg:#F6F8F5;
+    --surface:#FFFFFF;
+    --ink:#16241F;
+    --ink-soft:#4B5C54;
+    --teal-900:#12332C;
+    --teal-700:#1F5C4F;
+    --teal-500:#2E8570;
+    --teal-100:#E4EFEA;
+    --amber-500:#CE9A3E;
+    --amber-600:#B37F27;
+    --border:#DCE6DF;
+    --danger:#B24444;
+    --danger-bg:#F8EAEA;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    background-image:radial-gradient(circle, #E3ECE6 1px, transparent 1px);
+    background-size:22px 22px;
+    color:var(--ink);
+    font-family:'Work Sans',sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.serif{font-family:'Fraunces',serif;}
+  button{font-family:inherit;cursor:pointer;}
+  input,select,textarea{font-family:inherit;}
+  a{color:inherit;}
+  ::selection{background:var(--teal-100);}
+
+  /* ---------- Header ---------- */
+  .topbar{
+    background:var(--teal-900);
+    color:#fff;
+    padding:12px 24px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-mark{
+    width:38px;height:38px;flex:none;position:relative;
+  }
+  .brand-mark::before,.brand-mark::after{
+    content:"";position:absolute;background:var(--amber-500);
+  }
+  .brand-mark::before{width:38px;height:12px;top:13px;left:0;}
+  .brand-mark::after{width:12px;height:38px;left:13px;top:0;}
+  .brand-text h1{font-size:22px;margin:0;font-weight:600;letter-spacing:0.2px;}
+  .brand-text p{margin:0;font-size:12.5px;color:#BFD6CC;}
+  .topnav{display:flex;align-items:center;gap:6px;}
+  .topnav button{
+    background:transparent;border:1px solid rgba(255,255,255,0.25);
+    color:#fff;padding:8px 16px;border-radius:4px;font-size:14px;font-weight:500;
+    transition:background .15s;
+  }
+  .topnav button:hover{background:rgba(255,255,255,0.1);}
+  .topnav button.active{background:var(--amber-500);border-color:var(--amber-500);color:var(--teal-900);}
+  .cart-btn{position:relative;}
+  .cart-badge{
+    position:absolute;top:-7px;right:-7px;background:var(--amber-500);color:var(--teal-900);
+    font-size:11px;font-weight:700;width:19px;height:19px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+  }
+
+  /* ---------- Layout ---------- */
+  .page{max-width:1180px;margin:0 auto;padding:28px 24px 80px;}
+  .hero{
+    position:relative;
+    display:flex;justify-content:space-between;align-items:center;
+    gap:32px;margin-bottom:30px;flex-wrap:wrap;
+    padding:34px 32px;border-radius:14px;overflow:hidden;
+    background:linear-gradient(135deg,var(--teal-900) 0%,var(--teal-700) 68%,#2C7460 100%);
+    color:#fff;
+    animation:heroIn .6s ease both;
+  }
+  @keyframes heroIn{ from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
+  .hero-copy{position:relative;z-index:2;max-width:56ch;}
+  .hero-eyebrow{font-size:13px;color:var(--amber-500);font-weight:600;margin-bottom:6px;}
+  .hero h2{font-size:32px;margin:0 0 10px;color:#fff;font-weight:600;}
+  .hero p{margin:0;color:#CFE2DA;max-width:50ch;font-size:15px;}
+  .hero-illustration{position:relative;z-index:2;flex:none;width:150px;height:150px;}
+  .hero::after{
+    content:"";position:absolute;right:-60px;top:-60px;width:260px;height:260px;
+    border-radius:50%;background:rgba(206,154,62,0.14);z-index:1;
+  }
+  .hero::before{
+    content:"";position:absolute;left:20%;bottom:-90px;width:200px;height:200px;
+    border-radius:50%;background:rgba(255,255,255,0.05);z-index:1;
+  }
+
+  .search-row{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+  .search-row input[type="text"]{
+    flex:1;min-width:220px;padding:11px 14px;border:1px solid var(--border);
+    border-radius:5px;font-size:14.5px;background:var(--surface);
+  }
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;}
+  .chip{
+    padding:7px 14px 7px 10px;border-radius:20px;border:1px solid var(--border);
+    background:var(--surface);font-size:13.5px;color:var(--ink-soft);font-weight:500;
+    display:inline-flex;align-items:center;gap:7px;
+  }
+  .chip .dot{width:8px;height:8px;border-radius:50%;background:var(--dot,var(--teal-500));}
+  .chip.active{background:var(--teal-700);border-color:var(--teal-700);color:#fff;}
+  .chip.active .dot{background:#fff;}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;}
+  .trust-strip{
+    display:flex;flex-wrap:wrap;gap:0;margin-bottom:30px;
+    border:1px solid var(--border);border-radius:10px;background:var(--surface);overflow:hidden;
+  }
+  .trust-item{
+    flex:1;min-width:180px;display:flex;align-items:center;gap:10px;
+    padding:16px 18px;border-right:1px solid var(--border);
+  }
+  .trust-item:last-child{border-right:none;}
+  .trust-item svg{flex:none;}
+  .trust-item .t-title{font-size:13.5px;font-weight:600;color:var(--teal-900);}
+  .trust-item .t-sub{font-size:11.5px;color:var(--ink-soft);}
+
+  .card{
+    background:var(--surface);border:1px solid var(--border);border-radius:8px;
+    padding:16px;display:flex;flex-direction:column;gap:8px;position:relative;
+    border-top:3px solid var(--accent,var(--teal-500));
+    transition:transform .18s ease, box-shadow .18s ease;
+  }
+  .card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(18,51,44,0.1);}
+  .card-media{
+    width:100%;height:110px;border-radius:6px;overflow:hidden;background:var(--teal-100);
+    display:flex;align-items:center;justify-content:center;margin-bottom:4px;
+  }
+  .card-media img{width:100%;height:100%;object-fit:cover;}
+  .card .cat{font-size:11.5px;color:var(--teal-500);font-weight:600;}
+  .card h3{font-size:16.5px;margin:0;font-weight:600;color:var(--ink);}
+  .card .mfr{font-size:12.5px;color:var(--ink-soft);margin-top:-6px;}
+  .card .price-row{display:flex;align-items:baseline;gap:8px;margin-top:4px;}
+  .card .price{font-size:19px;font-weight:700;color:var(--teal-900);font-family:'Fraunces',serif;}
+  .card .gst{font-size:11.5px;color:var(--ink-soft);}
+  .stock-tag{font-size:12px;font-weight:600;}
+  .stock-ok{color:var(--teal-500);}
+  .stock-low{color:var(--amber-600);}
+  .stock-out{color:var(--danger);}
+  .add-row{display:flex;gap:8px;margin-top:6px;}
+  .qty-input{width:52px;padding:7px;border:1px solid var(--border);border-radius:5px;text-align:center;}
+  .btn{
+    border:none;border-radius:5px;padding:9px 16px;font-weight:600;font-size:13.5px;
+  }
+  .btn-primary{background:var(--teal-700);color:#fff;flex:1;}
+  .btn-primary:hover{background:var(--teal-900);}
+  .btn-primary:disabled{background:#B7C4BF;cursor:not-allowed;}
+  .btn-amber{background:var(--amber-500);color:var(--teal-900);}
+  .btn-amber:hover{background:var(--amber-600);}
+  .btn-outline{background:transparent;border:1px solid var(--border);color:var(--ink);}
+  .btn-outline:hover{border-color:var(--teal-500);}
+  .btn-danger{background:var(--danger-bg);color:var(--danger);}
+  .btn-ghost{background:transparent;color:var(--teal-700);text-decoration:underline;padding:4px 0;}
+  .empty{color:var(--ink-soft);padding:40px 0;text-align:center;font-size:15px;}
+
+  /* ---------- Cart drawer ---------- */
+  .overlay{
+    position:fixed;inset:0;background:rgba(15,25,22,0.45);z-index:40;
+    opacity:0;pointer-events:none;transition:opacity .2s;
+  }
+  .overlay.show{opacity:1;pointer-events:auto;}
+  .drawer{
+    position:fixed;top:0;right:0;height:100%;width:min(400px,92vw);
+    background:var(--surface);z-index:41;transform:translateX(100%);
+    transition:transform .25s ease;display:flex;flex-direction:column;
+  }
+  .drawer.show{transform:translateX(0);}
+  .drawer-head{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+  .drawer-head h3{margin:0;font-size:19px;}
+  .drawer-close{background:none;border:none;font-size:22px;color:var(--ink-soft);line-height:1;}
+  .drawer-body{flex:1;overflow-y:auto;padding:16px 20px;}
+  .cart-item{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid var(--border);}
+  .cart-item .ci-name{font-weight:600;font-size:14.5px;}
+  .cart-item .ci-meta{font-size:12px;color:var(--ink-soft);}
+  .ci-qty{display:flex;align-items:center;gap:6px;margin-top:6px;}
+  .ci-qty button{width:24px;height:24px;border:1px solid var(--border);background:var(--surface);border-radius:4px;font-size:14px;}
+  .ci-right{text-align:right;}
+  .ci-remove{font-size:12px;color:var(--danger);background:none;border:none;margin-top:6px;}
+  .drawer-foot{border-top:1px solid var(--border);padding:16px 20px;background:#FBFCFB;}
+  .gst-toggle{display:flex;gap:6px;margin-bottom:12px;background:var(--teal-100);padding:4px;border-radius:6px;}
+  .gst-toggle button{flex:1;padding:7px;border:none;border-radius:4px;background:transparent;font-size:12.5px;font-weight:600;color:var(--teal-700);}
+  .gst-toggle button.active{background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,0.08);}
+  .sum-row{display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px;color:var(--ink-soft);}
+  .sum-row.total{font-size:18px;font-weight:700;color:var(--teal-900);margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);}
+  .manual-gst-input{width:100%;padding:9px;border:1px solid var(--border);border-radius:5px;margin-top:8px;font-size:14px;}
+
+  /* ---------- Modal ---------- */
+  .modal-back{
+    position:fixed;inset:0;background:rgba(15,25,22,0.5);z-index:50;
+    display:none;align-items:center;justify-content:center;padding:20px;
+  }
+  .modal-back.show{display:flex;}
+  .modal{background:var(--surface);border-radius:8px;max-width:460px;width:100%;max-height:88vh;overflow-y:auto;padding:24px;}
+  .modal h3{margin:0 0 4px;font-size:20px;}
+  .modal .sub{color:var(--ink-soft);font-size:13.5px;margin:0 0 18px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:13px;font-weight:600;color:var(--ink-soft);margin-bottom:5px;}
+  .field input,.field select,.field textarea{
+    width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:5px;font-size:14px;
+  }
+  .field-row{display:flex;gap:10px;}
+  .field-row .field{flex:1;}
+  .modal-actions{display:flex;gap:10px;margin-top:18px;}
+  .modal-actions .btn{flex:1;}
+
+  /* ---------- Invoice ---------- */
+  .invoice{border:1px solid var(--border);border-radius:6px;padding:16px;margin-top:14px;background:#FBFCFB;}
+  .invoice-row{display:flex;justify-content:space-between;font-size:13.5px;padding:4px 0;}
+  .invoice hr{border:none;border-top:1px dashed var(--border);margin:10px 0;}
+
+  /* ---------- Admin ---------- */
+  .admin-gate{max-width:360px;margin:80px auto;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:28px;text-align:center;}
+  .admin-gate h2{margin:0 0 6px;}
+  .admin-gate p{color:var(--ink-soft);font-size:13.5px;margin-bottom:18px;}
+  .admin-gate input{width:100%;padding:11px;border:1px solid var(--border);border-radius:5px;text-align:center;font-size:16px;letter-spacing:2px;margin-bottom:12px;}
+  .stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px;}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;}
+  .stat .num{font-family:'Fraunces',serif;font-size:26px;font-weight:600;color:var(--teal-900);}
+  .stat .label{font-size:12.5px;color:var(--ink-soft);}
+  .stat.warn .num{color:var(--danger);}
+  .admin-tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--border);}
+  .admin-tabs button{background:none;border:none;padding:10px 18px;font-size:14.5px;font-weight:600;color:var(--ink-soft);border-bottom:2px solid transparent;}
+  .admin-tabs button.active{color:var(--teal-700);border-bottom-color:var(--teal-700);}
+  table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+  thead th{background:var(--teal-100);text-align:left;font-size:12.5px;color:var(--teal-900);padding:10px 12px;font-weight:600;}
+  tbody td{padding:10px 12px;font-size:13.5px;border-top:1px solid var(--border);}
+  tbody tr:hover{background:#FAFCFB;}
+  .row-actions{display:flex;gap:6px;}
+  .row-actions button{padding:5px 10px;font-size:12px;border-radius:4px;}
+  .status-pill{padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:600;}
+  .status-Pending{background:#FBF0DC;color:var(--amber-600);}
+  .status-Packed{background:#E4EFEA;color:var(--teal-700);}
+  .status-Dispatched{background:#DCEAFB;color:#2A5C9A;}
+  .status-Delivered{background:#E1F3E1;color:#2F7A3D;}
+  .admin-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
+  .low-flag{color:var(--danger);font-weight:600;font-size:11.5px;}
+
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--teal-900);color:#fff;padding:12px 22px;border-radius:6px;font-size:14px;
+    opacity:0;pointer-events:none;transition:all .25s;z-index:60;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  footer{
+    max-width:1180px;margin:30px auto 0;padding:26px 24px;
+    border-top:1px solid var(--border);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;
+    color:var(--ink-soft);font-size:12.5px;
+  }
+  footer .f-brand{font-family:'Fraunces',serif;font-size:16px;color:var(--teal-900);font-weight:600;}
+  footer .f-col{max-width:260px;}
+
+  /* ---------- Map picker ---------- */
+  .map-modal .modal{max-width:520px;}
+  #mapPickerBox{width:100%;height:260px;border-radius:6px;border:1px solid var(--border);margin-bottom:10px;background:var(--teal-100);}
+  .map-search-row{display:flex;gap:8px;margin-bottom:10px;}
+  .map-search-row input{flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:5px;font-size:13.5px;}
+  .map-picked-address{font-size:12.5px;color:var(--ink-soft);background:#FBFCFB;border:1px dashed var(--border);border-radius:5px;padding:8px 10px;margin-bottom:6px;min-height:18px;}
+  .gmaps-link{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;color:#2A5C9A;text-decoration:none;}
+
+  /* ---------- Store / customer login ---------- */
+  .store-visit{
+    display:flex;gap:20px;flex-wrap:wrap;align-items:center;justify-content:space-between;
+    background:var(--surface);border:1px solid var(--border);border-radius:10px;
+    padding:20px 24px;margin:34px 0;
+  }
+  .store-visit h3{margin:0 0 4px;font-size:18px;}
+  .store-visit p{margin:0;color:var(--ink-soft);font-size:13.5px;}
+  .my-orders-row{border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:10px;background:var(--surface);}
+  .my-orders-row .mo-top{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;}
+  .my-orders-row .mo-sub{font-size:12px;color:var(--ink-soft);margin-top:4px;}
+
+  @media print{
+    .topbar,.chips,.search-row,.admin-tabs,.admin-toolbar,footer,.no-print{display:none !important;}
+    body{background:#fff;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-mark"></div>
+    <div class="brand-text">
+      <h1>Jain Farma</h1>
+      <p>आपकी सेहत, हमारी ज़िम्मेदारी</p>
+    </div>
+  </div>
+  <div class="topnav">
+    <button id="navStore" class="active">Store</button>
+    <button id="navMyOrders" style="display:none;">My Orders</button>
+    <button id="navLogin">Login</button>
+    <button id="navAdmin">Admin</button>
+    <button id="navCart" class="cart-btn">Cart <span id="cartCount" class="cart-badge" style="display:none;">0</span></button>
+  </div>
+</div>
+
+<div id="storeView" class="page">
+  <div class="hero">
+    <div class="hero-copy">
+      <div class="hero-eyebrow">Trusted neighbourhood pharmacy</div>
+      <h2>Medicine mangwao, ghar baithe.</h2>
+      <p>Jain Farma se genuine medicines seedhe aapke darwaze tak — bina line mein lage, bina waqt gawaye. Ek click mein order karo, hum sambhal lete hain baaki sab.</p>
+    </div>
+    <div class="hero-illustration">
+      <svg viewBox="0 0 160 160" width="150" height="150">
+        <g opacity="0.95">
+          <rect x="46" y="18" width="68" height="30" rx="15" fill="#CE9A3E" transform="rotate(28 80 33)"/>
+          <rect x="46" y="18" width="34" height="30" rx="15" fill="#12332C" transform="rotate(28 80 33)"/>
+          <circle cx="55" cy="95" r="34" fill="#2E8570"/>
+          <path d="M55 61 A34 34 0 0 1 55 129" fill="#E4EFEA"/>
+          <rect x="98" y="86" width="8" height="34" rx="4" fill="#F6F8F5"/>
+          <rect x="87" y="97" width="30" height="8" rx="4" fill="#F6F8F5"/>
+          <circle cx="102" cy="103" r="26" fill="none" stroke="#CE9A3E" stroke-width="3" opacity="0.5"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+  <div class="trust-strip">
+    <div class="trust-item">
+      <svg width="26" height="26" viewBox="0 0 26 26"><circle cx="13" cy="13" r="12" fill="#E4EFEA"/><path d="M8 13l3.5 3.5L18 9" stroke="#2E8570" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div><div class="t-title">100% Genuine</div><div class="t-sub">Sourced medicines only</div></div>
+    </div>
+    <div class="trust-item">
+      <svg width="26" height="26" viewBox="0 0 26 26"><rect x="2" y="9" width="14" height="9" rx="2" fill="#DCEAFB"/><path d="M16 12h4l3 3v3h-7z" fill="#DCEAFB"/><circle cx="8" cy="20" r="2.4" fill="#2A5C9A"/><circle cx="19" cy="20" r="2.4" fill="#2A5C9A"/></svg>
+      <div><div class="t-title">Home Delivery</div><div class="t-sub">Straight to your door</div></div>
+    </div>
+    <div class="trust-item">
+      <svg width="26" height="26" viewBox="0 0 26 26"><rect x="4" y="3" width="18" height="20" rx="2" fill="#FBF0DC"/><line x1="8" y1="9" x2="18" y2="9" stroke="#B37F27" stroke-width="1.6"/><line x1="8" y1="14" x2="18" y2="14" stroke="#B37F27" stroke-width="1.6"/><line x1="8" y1="19" x2="14" y2="19" stroke="#B37F27" stroke-width="1.6"/></svg>
+      <div><div class="t-title">GST Invoice</div><div class="t-sub">Auto or manual tax</div></div>
+    </div>
+    <div class="trust-item">
+      <svg width="26" height="26" viewBox="0 0 26 26"><circle cx="13" cy="9" r="5" fill="#F8EAEA"/><path d="M4 22c0-5 4-8 9-8s9 3 9 8" fill="#F8EAEA"/><circle cx="13" cy="9" r="2" fill="#B24444"/></svg>
+      <div><div class="t-title">Pharmacist Verified</div><div class="t-sub">Every order checked</div></div>
+    </div>
+  </div>
+  <div class="store-visit" id="storeVisitBox">
+    <div>
+      <h3>Visit our store</h3>
+      <p id="storeAddressText">Store address not set yet — admin can set it from the Admin → Store tab.</p>
+    </div>
+    <a href="#" id="storeDirectionsLink" class="btn btn-outline" target="_blank" style="display:none;text-decoration:none;">Get Directions (Google Maps)</a>
+  </div>
+  <div class="search-row">
+    <input type="text" id="searchInput" placeholder="Search medicine by name...">
+  </div>
+  <div class="chips" id="categoryChips"></div>
+  <div class="grid" id="medicineGrid"></div>
+</div>
+
+<div id="adminView" class="page" style="display:none;"></div>
+<div id="myOrdersView" class="page" style="display:none;"></div>
+
+<div class="overlay" id="cartOverlay"></div>
+<div class="drawer" id="cartDrawer">
+  <div class="drawer-head">
+    <h3>Your Cart</h3>
+    <button class="drawer-close" id="closeCart">&times;</button>
+  </div>
+  <div class="drawer-body" id="cartBody"></div>
+  <div class="drawer-foot" id="cartFoot" style="display:none;">
+    <div class="gst-toggle">
+      <button id="gstAutoBtn" class="active">Auto GST</button>
+      <button id="gstManualBtn">Manual GST</button>
+    </div>
+    <div id="manualGstWrap" style="display:none;">
+      <input type="number" min="0" step="0.01" class="manual-gst-input" id="manualGstInput" placeholder="Enter tax amount (₹)">
+    </div>
+    <div class="sum-row"><span>Subtotal</span><span id="sumSubtotal">₹0</span></div>
+    <div class="sum-row"><span id="gstLabel">GST (auto)</span><span id="sumGst">₹0</span></div>
+    <div class="sum-row total"><span>Total</span><span id="sumTotal">₹0</span></div>
+    <button class="btn btn-amber" style="width:100%;margin-top:10px;" id="checkoutBtn">Proceed to Checkout</button>
+  </div>
+</div>
+
+<div class="modal-back" id="checkoutModal">
+  <div class="modal">
+    <h3>Delivery details</h3>
+    <p class="sub">We'll use this to deliver your order.</p>
+    <div class="field"><label>Full name</label><input type="text" id="custName"></div>
+    <div class="field"><label>Phone number</label><input type="text" id="custPhone" maxlength="10"></div>
+    <div class="field"><label>Delivery address</label><textarea id="custAddress" rows="3"></textarea></div>
+    <div class="map-picked-address" id="custMapPreview" style="display:none;"></div>
+    <button class="btn btn-outline" style="width:100%;margin-bottom:6px;" id="pickLocationBtn">📍 Pick exact location on map</button>
+    <div class="modal-actions">
+      <button class="btn btn-outline" id="cancelCheckout">Cancel</button>
+      <button class="btn btn-primary" id="placeOrderBtn">Place Order</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-back map-modal" id="mapModal">
+  <div class="modal">
+    <h3 id="mapModalTitle">Pick location</h3>
+    <p class="sub">Search a place, use your current location, or drag the pin.</p>
+    <div class="map-search-row">
+      <input type="text" id="mapSearchInput" placeholder="Search area, landmark...">
+      <button class="btn btn-outline" id="mapSearchBtn">Search</button>
+    </div>
+    <div id="mapPickerBox"></div>
+    <div class="map-picked-address" id="mapPickedAddress">Move the pin to select a location.</div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" id="useMyLocationBtn">Use my location</button>
+      <button class="btn btn-amber" id="confirmLocationBtn">Confirm Location</button>
+    </div>
+    <div class="modal-actions no-print">
+      <button class="btn btn-ghost" id="cancelMapBtn" style="flex:1;text-align:center;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-back" id="loginModal">
+  <div class="modal">
+    <h3>Login with your number</h3>
+    <p class="sub">We'll use this to track your orders and pre-fill delivery details.</p>
+    <div class="field"><label>Your name</label><input type="text" id="loginName"></div>
+    <div class="field"><label>Phone number</label><input type="text" id="loginPhone" maxlength="10" placeholder="10-digit mobile number"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" id="cancelLogin">Cancel</button>
+      <button class="btn btn-primary" id="confirmLoginBtn">Continue</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-back" id="successModal">
+  <div class="modal">
+    <h3>Order placed ✓</h3>
+    <p class="sub">Jain Farma will prepare your order shortly.</p>
+    <div class="invoice" id="invoiceBox"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" id="printInvoiceBtn">Print Invoice</button>
+      <button class="btn btn-primary" id="closeSuccessBtn">Done</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-back" id="medModal">
+  <div class="modal">
+    <h3 id="medModalTitle">Add Medicine</h3>
+    <p class="sub">Fill in the details below.</p>
+    <div class="field">
+      <label>Medicine photo (optional)</label>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <img id="medImagePreview" src="" alt="" style="width:56px;height:56px;border-radius:6px;object-fit:cover;border:1px solid var(--border);display:none;">
+        <div id="medImagePlaceholder" style="width:56px;height:56px;border-radius:6px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--ink-soft);text-align:center;">No photo</div>
+        <input type="file" accept="image/*" capture="environment" id="medImageInput" style="flex:1;font-size:12.5px;">
+      </div>
+    </div>
+    <div class="field"><label>Name</label><input type="text" id="medName"></div>
+    <div class="field"><label>Manufacturer</label><input type="text" id="medMfr"></div>
+    <div class="field-row">
+      <div class="field"><label>Category</label>
+        <select id="medCategory">
+          <option>Tablets</option><option>Syrups</option><option>Ayurvedic</option>
+          <option>Personal Care</option><option>Devices</option><option>Baby Care</option>
+        </select>
+      </div>
+      <div class="field"><label>GST %</label>
+        <select id="medGst"><option value="0">0%</option><option value="5">5%</option><option value="12">12%</option><option value="18">18%</option></select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Price (₹)</label><input type="number" min="0" step="0.01" id="medPrice"></div>
+      <div class="field"><label>Stock qty</label><input type="number" min="0" id="medStock"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" id="cancelMed">Cancel</button>
+      <button class="btn btn-primary" id="saveMedBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<footer>
+  <div class="f-col">
+    <div class="f-brand">Jain Farma</div>
+    <p>Neighbourhood medical store bringing genuine medicines online — order, and we deliver.</p>
+  </div>
+  <div class="f-col">
+    <div style="font-weight:600;color:var(--ink);margin-bottom:4px;">Store hours</div>
+    <p>Mon–Sat, 9:00 AM – 9:00 PM</p>
+  </div>
+  <div class="f-col">
+    <div style="font-weight:600;color:var(--ink);margin-bottom:4px;">Contact</div>
+    <p>Order query ke liye store par sampark karein — hum hamesha madad ke liye taiyar hain.</p>
+  </div>
+</footer>
+
+<script>
+const MED_KEY = 'jainfarma:medicines';
+const ORDER_KEY = 'jainfarma:orders';
+const CART_KEY = 'jainfarma:cart';
+const SETTINGS_KEY = 'jainfarma:settings';
+const CUSTOMER_KEY = 'jainfarma:customer';
+const ADMIN_PASSCODE = '1234';
+
+let medicines = [];
+let orders = [];
+let cart = {}; // {medId: qty}
+let currentCategory = 'All';
+let searchTerm = '';
+let gstMode = 'auto';
+let adminLoggedIn = false;
+let adminTab = 'inventory';
+let editingMedId = null;
+let storeSettings = {address:'', lat:null, lng:null, mapsUrl:null};
+let customerProfile = null; // {name, phone, address, lat, lng, mapsUrl}
+let pickedLocation = null; // {lat, lng, address, mapsUrl} - result of the map picker
+let mapPickerContext = 'checkout'; // 'checkout' or 'store'
+let leafletMap = null, leafletMarker = null;
+
+const seedMedicines = () => ([
+  {id:'m1',name:'Paracetamol 500mg (10 tabs)',mfr:'GenHealth Pharma',category:'Tablets',price:22,gstRate:12,stock:120},
+  {id:'m2',name:'Cetirizine 10mg (10 tabs)',mfr:'Wellcure Labs',category:'Tablets',price:18,gstRate:12,stock:80},
+  {id:'m3',name:'Cough Relief Syrup 100ml',mfr:'Sanjivani Formulations',category:'Syrups',price:95,gstRate:12,stock:40},
+  {id:'m4',name:'Digestive Tonic 200ml',mfr:'Ayurvriksh',category:'Ayurvedic',price:140,gstRate:5,stock:25},
+  {id:'m5',name:'Chyawanprash 500g',mfr:'Ayurvriksh',category:'Ayurvedic',price:210,gstRate:5,stock:30},
+  {id:'m6',name:'Hand Sanitizer 200ml',mfr:'PureCare',category:'Personal Care',price:85,gstRate:18,stock:60},
+  {id:'m7',name:'Antiseptic Liquid 100ml',mfr:'PureCare',category:'Personal Care',price:60,gstRate:12,stock:4},
+  {id:'m8',name:'Digital Thermometer',mfr:'MediTech',category:'Devices',price:220,gstRate:18,stock:15},
+  {id:'m9',name:'Blood Pressure Monitor',mfr:'MediTech',category:'Devices',price:1450,gstRate:18,stock:8},
+  {id:'m10',name:'Baby Diaper Rash Cream 50g',mfr:'LittleOnes Care',category:'Baby Care',price:110,gstRate:18,stock:0},
+  {id:'m11',name:'Vitamin C Effervescent (10 tabs)',mfr:'Wellcure Labs',category:'Tablets',price:135,gstRate:12,stock:50},
+  {id:'m12',name:'ORS Rehydration Sachets (5)',mfr:'GenHealth Pharma',category:'Tablets',price:30,gstRate:0,stock:100},
+]);
+
+function fmt(n){ return '₹' + Number(n).toFixed(2).replace(/\.00$/,''); }
+
+const categoryIconColors = {
+  'Tablets':'#2E8570','Syrups':'#CE9A3E','Ayurvedic':'#3F7A4A',
+  'Personal Care':'#2A5C9A','Devices':'#B24444','Baby Care':'#B37F27'
+};
+function categoryIcon(cat){
+  const color = categoryIconColors[cat] || '#2E8570';
+  return `<svg width="42" height="42" viewBox="0 0 42 42">
+    <rect x="6" y="6" width="30" height="30" rx="8" fill="${color}" opacity="0.16"/>
+    <rect x="14" y="10" width="14" height="22" rx="7" fill="${color}" transform="rotate(20 21 21)"/>
+    <rect x="14" y="10" width="14" height="11" rx="7" fill="#fff" opacity="0.55" transform="rotate(20 21 21)"/>
+  </svg>`;
+}
+
+function readAndCompressImage(file){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const size = 220;
+        const canvas = document.createElement('canvas');
+        canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        const scale = Math.max(size/img.width, size/img.height);
+        const w = img.width*scale, h = img.height*scale;
+        ctx.drawImage(img, (size-w)/2, (size-h)/2, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+async function loadData(){
+  try{
+    const m = await window.storage.get(MED_KEY, true);
+    medicines = m ? JSON.parse(m.value) : seedMedicines();
+    if(!m) await window.storage.set(MED_KEY, JSON.stringify(medicines), true);
+  }catch(e){ medicines = seedMedicines(); await window.storage.set(MED_KEY, JSON.stringify(medicines), true).catch(()=>{}); }
+
+  try{
+    const o = await window.storage.get(ORDER_KEY, true);
+    orders = o ? JSON.parse(o.value) : [];
+  }catch(e){ orders = []; }
+
+  try{
+    const c = await window.storage.get(CART_KEY, false);
+    cart = c ? JSON.parse(c.value) : {};
+  }catch(e){ cart = {}; }
+
+  try{
+    const s = await window.storage.get(SETTINGS_KEY, true);
+    if(s) storeSettings = JSON.parse(s.value);
+  }catch(e){ /* no settings yet */ }
+
+  try{
+    const cp = await window.storage.get(CUSTOMER_KEY, false);
+    if(cp) customerProfile = JSON.parse(cp.value);
+  }catch(e){ /* not logged in */ }
+
+  renderCategoryChips();
+  renderMedicineGrid();
+  renderCart();
+  renderStoreVisit();
+  renderLoginNav();
+}
+
+async function saveMedicines(){
+  await window.storage.set(MED_KEY, JSON.stringify(medicines), true).catch(()=>showToast('Could not save — try again'));
+}
+async function saveOrders(){
+  await window.storage.set(ORDER_KEY, JSON.stringify(orders), true).catch(()=>showToast('Could not save — try again'));
+}
+async function saveCart(){
+  await window.storage.set(CART_KEY, JSON.stringify(cart), false).catch(()=>{});
+}
+async function saveSettings(){
+  await window.storage.set(SETTINGS_KEY, JSON.stringify(storeSettings), true).catch(()=>showToast('Could not save — try again'));
+}
+async function saveCustomerProfile(){
+  await window.storage.set(CUSTOMER_KEY, JSON.stringify(customerProfile), false).catch(()=>{});
+}
+
+function renderStoreVisit(){
+  const textEl = document.getElementById('storeAddressText');
+  const linkEl = document.getElementById('storeDirectionsLink');
+  if(storeSettings && storeSettings.address){
+    textEl.textContent = storeSettings.address;
+  }else{
+    textEl.textContent = 'Store address not set yet — admin can set it from the Admin → Store Location tab.';
+  }
+  if(storeSettings && storeSettings.mapsUrl){
+    linkEl.href = storeSettings.mapsUrl;
+    linkEl.style.display = 'inline-flex';
+  }else{
+    linkEl.style.display = 'none';
+  }
+}
+
+function renderLoginNav(){
+  const btn = document.getElementById('navLogin');
+  const myOrdersBtn = document.getElementById('navMyOrders');
+  if(customerProfile && customerProfile.phone){
+    btn.textContent = 'Hi, ' + customerProfile.name.split(' ')[0];
+    myOrdersBtn.style.display = 'inline-block';
+  }else{
+    btn.textContent = 'Login';
+    myOrdersBtn.style.display = 'none';
+  }
+}
+
+/* ---------------- Store view ---------------- */
+function renderCategoryChips(){
+  const cats = ['All', ...new Set(medicines.map(m=>m.category))];
+  const wrap = document.getElementById('categoryChips');
+  wrap.innerHTML = cats.map(c => {
+    const dotColor = c==='All' ? '#8AA69C' : (categoryIconColors[c] || '#2E8570');
+    return `<button class="chip ${c===currentCategory?'active':''}" data-cat="${c}" style="--dot:${dotColor}"><span class="dot"></span>${c}</button>`;
+  }).join('');
+  wrap.querySelectorAll('.chip').forEach(btn=>{
+    btn.onclick = () => { currentCategory = btn.dataset.cat; renderCategoryChips(); renderMedicineGrid(); };
+  });
+}
+
+function renderMedicineGrid(){
+  const grid = document.getElementById('medicineGrid');
+  let list = medicines.filter(m=>{
+    const matchCat = currentCategory==='All' || m.category===currentCategory;
+    const matchSearch = m.name.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchCat && matchSearch;
+  });
+  if(list.length===0){ grid.innerHTML = '<div class="empty">No medicines found.</div>'; return; }
+  grid.innerHTML = list.map(m=>{
+    const stockLabel = m.stock===0 ? '<span class="stock-tag stock-out">Out of stock</span>'
+      : m.stock<10 ? `<span class="stock-tag stock-low">Only ${m.stock} left</span>`
+      : `<span class="stock-tag stock-ok">In stock</span>`;
+    return `
+    <div class="card" style="--accent:${categoryIconColors[m.category]||'#2E8570'}">
+      <div class="card-media">${m.image ? `<img src="${m.image}" alt="${m.name}">` : categoryIcon(m.category)}</div>
+      <div class="cat">${m.category}</div>
+      <h3>${m.name}</h3>
+      <div class="mfr">${m.mfr}</div>
+      <div class="price-row"><span class="price">${fmt(m.price)}</span><span class="gst">+${m.gstRate}% GST</span></div>
+      ${stockLabel}
+      <div class="add-row">
+        <input type="number" min="1" max="${m.stock}" value="1" class="qty-input" id="qty-${m.id}" ${m.stock===0?'disabled':''}>
+        <button class="btn btn-primary" data-add="${m.id}" ${m.stock===0?'disabled':''}>Add to Cart</button>
+      </div>
+    </div>`;
+  }).join('');
+  grid.querySelectorAll('[data-add]').forEach(btn=>{
+    btn.onclick = () => {
+      const id = btn.dataset.add;
+      const qtyInput = document.getElementById('qty-'+id);
+      const qty = Math.max(1, parseInt(qtyInput.value)||1);
+      const med = medicines.find(m=>m.id===id);
+      const already = cart[id]||0;
+      if(already+qty > med.stock){ showToast('Not enough stock available'); return; }
+      cart[id] = already+qty;
+      saveCart();
+      renderCart();
+      showToast(med.name + ' added to cart');
+    };
+  });
+}
+
+document.getElementById('searchInput').addEventListener('input', (e)=>{
+  searchTerm = e.target.value; renderMedicineGrid();
+});
+
+/* ---------------- Cart ---------------- */
+function cartEntries(){
+  return Object.entries(cart).filter(([id,q])=>q>0).map(([id,q])=>{
+    const med = medicines.find(m=>m.id===id);
+    return med ? {med, qty:q} : null;
+  }).filter(Boolean);
+}
+
+function renderCart(){
+  const entries = cartEntries();
+  const count = entries.reduce((s,e)=>s+e.qty,0);
+  const badge = document.getElementById('cartCount');
+  if(count>0){ badge.style.display='flex'; badge.textContent = count; } else { badge.style.display='none'; }
+
+  const body = document.getElementById('cartBody');
+  const foot = document.getElementById('cartFoot');
+  if(entries.length===0){
+    body.innerHTML = '<div class="empty">Your cart is empty.</div>';
+    foot.style.display = 'none';
+    return;
+  }
+  foot.style.display = 'block';
+  body.innerHTML = entries.map(({med,qty})=>`
+    <div class="cart-item">
+      <div>
+        <div class="ci-name">${med.name}</div>
+        <div class="ci-meta">${fmt(med.price)} × ${qty}</div>
+        <div class="ci-qty">
+          <button data-dec="${med.id}">−</button>
+          <span>${qty}</span>
+          <button data-inc="${med.id}">+</button>
+        </div>
+      </div>
+      <div class="ci-right">
+        <div style="font-weight:600;">${fmt(med.price*qty)}</div>
+        <button class="ci-remove" data-remove="${med.id}">Remove</button>
+      </div>
+    </div>
+  `).join('');
+  body.querySelectorAll('[data-inc]').forEach(b=>b.onclick=()=>{
+    const id=b.dataset.inc; const med=medicines.find(m=>m.id===id);
+    if(cart[id] < med.stock){ cart[id]++; saveCart(); renderCart(); } else { showToast('No more stock available'); }
+  });
+  body.querySelectorAll('[data-dec]').forEach(b=>b.onclick=()=>{
+    const id=b.dataset.dec; cart[id] = Math.max(0,cart[id]-1); saveCart(); renderCart();
+  });
+  body.querySelectorAll('[data-remove]').forEach(b=>b.onclick=()=>{
+    delete cart[b.dataset.remove]; saveCart(); renderCart();
+  });
+  renderCartTotals();
+}
+
+function computeTotals(){
+  const entries = cartEntries();
+  const subtotal = entries.reduce((s,{med,qty})=>s+med.price*qty,0);
+  const autoGst = entries.reduce((s,{med,qty})=>s+med.price*qty*med.gstRate/100,0);
+  let gstAmount = autoGst;
+  if(gstMode==='manual'){
+    const val = parseFloat(document.getElementById('manualGstInput').value);
+    gstAmount = isNaN(val) ? 0 : val;
+  }
+  const total = subtotal + gstAmount;
+  return {subtotal, autoGst, gstAmount, total};
+}
+
+function renderCartTotals(){
+  const {subtotal, autoGst, gstAmount, total} = computeTotals();
+  document.getElementById('sumSubtotal').textContent = fmt(subtotal);
+  document.getElementById('sumGst').textContent = fmt(gstAmount);
+  document.getElementById('sumTotal').textContent = fmt(total);
+  document.getElementById('gstLabel').textContent = gstMode==='auto' ? 'GST (auto)' : 'GST (manual)';
+  if(gstMode==='manual' && document.getElementById('manualGstInput').value===''){
+    document.getElementById('manualGstInput').placeholder = `Auto suggests ${fmt(autoGst)}`;
+  }
+}
+
+document.getElementById('gstAutoBtn').onclick = ()=>{
+  gstMode='auto';
+  document.getElementById('gstAutoBtn').classList.add('active');
+  document.getElementById('gstManualBtn').classList.remove('active');
+  document.getElementById('manualGstWrap').style.display='none';
+  renderCartTotals();
+};
+document.getElementById('gstManualBtn').onclick = ()=>{
+  gstMode='manual';
+  document.getElementById('gstManualBtn').classList.add('active');
+  document.getElementById('gstAutoBtn').classList.remove('active');
+  document.getElementById('manualGstWrap').style.display='block';
+  renderCartTotals();
+};
+document.getElementById('manualGstInput').addEventListener('input', renderCartTotals);
+
+/* ---------------- Login ---------------- */
+document.getElementById('navLogin').onclick = ()=>{
+  if(customerProfile && customerProfile.phone){
+    if(confirm('Log out of ' + customerProfile.phone + '?')){
+      customerProfile = null;
+      saveCustomerProfile();
+      renderLoginNav();
+      document.getElementById('navStore').click();
+    }
+  }else{
+    document.getElementById('loginModal').classList.add('show');
+  }
+};
+document.getElementById('cancelLogin').onclick = ()=> document.getElementById('loginModal').classList.remove('show');
+document.getElementById('confirmLoginBtn').onclick = async ()=>{
+  const name = document.getElementById('loginName').value.trim();
+  const phone = document.getElementById('loginPhone').value.trim();
+  if(!name || !/^\d{10}$/.test(phone)){ showToast('Enter your name and a valid 10-digit number'); return; }
+  customerProfile = {name, phone, address:'', lat:null, lng:null, mapsUrl:null};
+  await saveCustomerProfile();
+  renderLoginNav();
+  document.getElementById('loginModal').classList.remove('show');
+  document.getElementById('loginName').value=''; document.getElementById('loginPhone').value='';
+  showToast('Logged in as ' + name);
+};
+
+document.getElementById('navMyOrders').onclick = ()=>{
+  document.getElementById('storeView').style.display='none';
+  document.getElementById('adminView').style.display='none';
+  document.getElementById('myOrdersView').style.display='block';
+  document.getElementById('navStore').classList.remove('active');
+  renderMyOrders();
+};
+
+function renderMyOrders(){
+  const view = document.getElementById('myOrdersView');
+  if(!customerProfile){ view.innerHTML = '<div class="empty">Please login first.</div>'; return; }
+  const mine = orders.filter(o=>o.phone===customerProfile.phone);
+  if(mine.length===0){ view.innerHTML = `<h2>My Orders</h2><div class="empty">You haven't placed any orders yet.</div>`; return; }
+  view.innerHTML = `<h2>My Orders</h2>` + mine.map(o=>`
+    <div class="my-orders-row">
+      <div class="mo-top"><span>${o.id}</span><span class="status-pill status-${o.status}">${o.status}</span></div>
+      <div class="mo-sub">${new Date(o.date).toLocaleString()} · ${o.items.length} item(s) · ${fmt(o.total)}</div>
+      <div class="mo-sub">${o.address}</div>
+    </div>
+  `).join('');
+}
+
+/* ---------------- Map picker (Leaflet + OpenStreetMap, with Google Maps link) ---------------- */
+function ensureMap(lat, lng){
+  if(!leafletMap){
+    leafletMap = L.map('mapPickerBox').setView([lat, lng], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19, attribution: '© OpenStreetMap contributors'
+    }).addTo(leafletMap);
+    leafletMarker = L.marker([lat, lng], {draggable:true}).addTo(leafletMap);
+    leafletMarker.on('dragend', ()=>{
+      const p = leafletMarker.getLatLng();
+      updatePickedAddress(p.lat, p.lng);
+    });
+    leafletMap.on('click', (e)=>{
+      leafletMarker.setLatLng(e.latlng);
+      updatePickedAddress(e.latlng.lat, e.latlng.lng);
+    });
+  }else{
+    leafletMap.setView([lat, lng], 15);
+    leafletMarker.setLatLng([lat, lng]);
+  }
+  setTimeout(()=>leafletMap.invalidateSize(), 200);
+}
+
+async function updatePickedAddress(lat, lng){
+  const box = document.getElementById('mapPickedAddress');
+  box.textContent = 'Locating address...';
+  let addressText = `Pinned location (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
+  try{
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+    const data = await res.json();
+    if(data && data.display_name) addressText = data.display_name;
+  }catch(e){ /* fall back to coordinates */ }
+  pickedLocation = {
+    lat, lng, address: addressText,
+    mapsUrl: `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`
+  };
+  box.textContent = addressText;
+}
+
+document.getElementById('pickLocationBtn').onclick = ()=>{
+  mapPickerContext = 'checkout';
+  openMapModal();
+};
+document.getElementById('cancelMapBtn').onclick = ()=> document.getElementById('mapModal').classList.remove('show');
+
+function openMapModal(){
+  document.getElementById('mapModal').classList.add('show');
+  const startLat = (pickedLocation && pickedLocation.lat) || (customerProfile && customerProfile.lat) || (storeSettings && storeSettings.lat) || 28.6139;
+  const startLng = (pickedLocation && pickedLocation.lng) || (customerProfile && customerProfile.lng) || (storeSettings && storeSettings.lng) || 77.2090;
+  ensureMap(startLat, startLng);
+  document.getElementById('mapPickedAddress').textContent = pickedLocation ? pickedLocation.address : 'Move the pin to select a location.';
+}
+
+document.getElementById('useMyLocationBtn').onclick = ()=>{
+  if(!navigator.geolocation){ showToast('Location not supported on this device'); return; }
+  showToast('Getting your location...');
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const {latitude, longitude} = pos.coords;
+    leafletMap.setView([latitude, longitude], 16);
+    leafletMarker.setLatLng([latitude, longitude]);
+    updatePickedAddress(latitude, longitude);
+  }, ()=> showToast('Could not get your location — pick manually on the map'));
+};
+
+document.getElementById('mapSearchBtn').onclick = async ()=>{
+  const q = document.getElementById('mapSearchInput').value.trim();
+  if(!q) return;
+  try{
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`);
+    const data = await res.json();
+    if(data && data[0]){
+      const lat = parseFloat(data[0].lat), lng = parseFloat(data[0].lon);
+      leafletMap.setView([lat, lng], 16);
+      leafletMarker.setLatLng([lat, lng]);
+      updatePickedAddress(lat, lng);
+    }else{ showToast('Place not found — try a different search'); }
+  }catch(e){ showToast('Search failed — check your connection'); }
+};
+
+document.getElementById('confirmLocationBtn').onclick = ()=>{
+  if(!pickedLocation){ showToast('Pick a location first'); return; }
+  document.getElementById('mapModal').classList.remove('show');
+  if(mapPickerContext==='checkout'){
+    document.getElementById('custAddress').value = pickedLocation.address;
+    document.getElementById('custMapPreview').style.display = 'block';
+    document.getElementById('custMapPreview').innerHTML = `📍 Pin set — <a class="gmaps-link" href="${pickedLocation.mapsUrl}" target="_blank">view on Google Maps</a>`;
+  }else if(mapPickerContext==='store'){
+    document.getElementById('storeAddressInput').value = pickedLocation.address;
+    document.getElementById('storeMapPreview').style.display = 'block';
+    document.getElementById('storeMapPreview').innerHTML = `📍 Pin set — <a class="gmaps-link" href="${pickedLocation.mapsUrl}" target="_blank">view on Google Maps</a>`;
+  }
+};
+
+/* ---------------- Cart drawer open/close ---------------- */
+function openCart(){ document.getElementById('cartDrawer').classList.add('show'); document.getElementById('cartOverlay').classList.add('show'); renderCart(); }
+function closeCart(){ document.getElementById('cartDrawer').classList.remove('show'); document.getElementById('cartOverlay').classList.remove('show'); }
+document.getElementById('navCart').onclick = openCart;
+document.getElementById('closeCart').onclick = closeCart;
+document.getElementById('cartOverlay').onclick = closeCart;
+
+/* ---------------- Checkout ---------------- */
+document.getElementById('checkoutBtn').onclick = ()=>{
+  if(cartEntries().length===0) return;
+  if(customerProfile){
+    document.getElementById('custName').value = customerProfile.name || '';
+    document.getElementById('custPhone').value = customerProfile.phone || '';
+    document.getElementById('custAddress').value = customerProfile.address || '';
+    if(customerProfile.lat){
+      pickedLocation = {lat:customerProfile.lat, lng:customerProfile.lng, address:customerProfile.address, mapsUrl:customerProfile.mapsUrl};
+      document.getElementById('custMapPreview').style.display = 'block';
+      document.getElementById('custMapPreview').innerHTML = `📍 Pin set — <a class="gmaps-link" href="${customerProfile.mapsUrl}" target="_blank">view on Google Maps</a>`;
+    }
+  }
+  document.getElementById('checkoutModal').classList.add('show');
+};
+document.getElementById('cancelCheckout').onclick = ()=> document.getElementById('checkoutModal').classList.remove('show');
+
+document.getElementById('placeOrderBtn').onclick = async ()=>{
+  const name = document.getElementById('custName').value.trim();
+  const phone = document.getElementById('custPhone').value.trim();
+  const address = document.getElementById('custAddress').value.trim();
+  if(!name || !phone || !address){ showToast('Please fill all fields'); return; }
+  const entries = cartEntries();
+  const {subtotal, gstAmount, total} = computeTotals();
+  const order = {
+    id: 'ORD' + Date.now(),
+    date: new Date().toISOString(),
+    customerName: name, phone, address,
+    lat: pickedLocation ? pickedLocation.lat : null,
+    lng: pickedLocation ? pickedLocation.lng : null,
+    mapsUrl: pickedLocation ? pickedLocation.mapsUrl : null,
+    items: entries.map(({med,qty})=>({id:med.id,name:med.name,price:med.price,qty,gstRate:med.gstRate})),
+    subtotal, gstMode, gstAmount, total,
+    status:'Pending'
+  };
+  // reduce stock
+  entries.forEach(({med,qty})=>{ med.stock = Math.max(0, med.stock-qty); });
+  await saveMedicines();
+  orders.unshift(order);
+  await saveOrders();
+  cart = {};
+  await saveCart();
+  if(customerProfile){
+    customerProfile.name = name;
+    customerProfile.address = address;
+    if(pickedLocation){ customerProfile.lat = pickedLocation.lat; customerProfile.lng = pickedLocation.lng; customerProfile.mapsUrl = pickedLocation.mapsUrl; }
+    await saveCustomerProfile();
+  }
+  document.getElementById('checkoutModal').classList.remove('show');
+  document.getElementById('custName').value=''; document.getElementById('custPhone').value=''; document.getElementById('custAddress').value='';
+  document.getElementById('custMapPreview').style.display='none';
+  closeCart();
+  renderMedicineGrid();
+  renderCart();
+  showInvoice(order);
+};
+
+function showInvoice(order){
+  const box = document.getElementById('invoiceBox');
+  box.innerHTML = `
+    <div class="invoice-row"><strong>${order.id}</strong><span>${new Date(order.date).toLocaleString()}</span></div>
+    <div class="invoice-row"><span>${order.customerName}</span><span>${order.phone}</span></div>
+    <div class="invoice-row"><span style="color:var(--ink-soft);">${order.address}</span></div>
+    ${order.mapsUrl ? `<div class="invoice-row"><a class="gmaps-link" href="${order.mapsUrl}" target="_blank">📍 View delivery pin on Google Maps</a></div>` : ''}
+    <hr>
+    ${order.items.map(i=>`<div class="invoice-row"><span>${i.name} × ${i.qty}</span><span>${fmt(i.price*i.qty)}</span></div>`).join('')}
+    <hr>
+    <div class="invoice-row"><span>Subtotal</span><span>${fmt(order.subtotal)}</span></div>
+    <div class="invoice-row"><span>GST (${order.gstMode})</span><span>${fmt(order.gstAmount)}</span></div>
+    <div class="invoice-row" style="font-weight:700;font-size:15px;"><span>Total</span><span>${fmt(order.total)}</span></div>
+  `;
+  document.getElementById('successModal').classList.add('show');
+}
+document.getElementById('closeSuccessBtn').onclick = ()=> document.getElementById('successModal').classList.remove('show');
+document.getElementById('printInvoiceBtn').onclick = ()=> window.print();
+
+/* ---------------- Nav ---------------- */
+document.getElementById('navStore').onclick = ()=>{
+  document.getElementById('storeView').style.display='block';
+  document.getElementById('adminView').style.display='none';
+  document.getElementById('myOrdersView').style.display='none';
+  document.getElementById('navStore').classList.add('active');
+  document.getElementById('navAdmin').classList.remove('active');
+};
+document.getElementById('navAdmin').onclick = ()=>{
+  document.getElementById('storeView').style.display='none';
+  document.getElementById('myOrdersView').style.display='none';
+  document.getElementById('adminView').style.display='block';
+  document.getElementById('navAdmin').classList.add('active');
+  document.getElementById('navStore').classList.remove('active');
+  renderAdmin();
+};
+
+/* ---------------- Admin ---------------- */
+function renderAdmin(){
+  const view = document.getElementById('adminView');
+  if(!adminLoggedIn){
+    view.innerHTML = `
+      <div class="admin-gate">
+        <h2>Admin Login</h2>
+        <p>Enter passcode to manage inventory &amp; orders.</p>
+        <input type="password" id="adminPass" maxlength="4" placeholder="••••">
+        <button class="btn btn-primary" style="width:100%;" id="adminLoginBtn">Login</button>
+      </div>`;
+    document.getElementById('adminLoginBtn').onclick = ()=>{
+      const val = document.getElementById('adminPass').value;
+      if(val===ADMIN_PASSCODE){ adminLoggedIn = true; renderAdmin(); }
+      else showToast('Incorrect passcode');
+    };
+    document.getElementById('adminPass').addEventListener('keydown', e=>{
+      if(e.key==='Enter') document.getElementById('adminLoginBtn').click();
+    });
+    return;
+  }
+
+  const totalOrders = orders.length;
+  const revenue = orders.reduce((s,o)=>s+o.total,0);
+  const gstCollected = orders.reduce((s,o)=>s+o.gstAmount,0);
+  const lowStock = medicines.filter(m=>m.stock<10).length;
+
+  view.innerHTML = `
+    <div class="admin-toolbar">
+      <h2 style="margin:0;">Admin Dashboard</h2>
+      <button class="btn btn-outline" id="adminLogoutBtn">Log out</button>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><div class="num">${totalOrders}</div><div class="label">Total orders</div></div>
+      <div class="stat"><div class="num">${fmt(revenue)}</div><div class="label">Total revenue</div></div>
+      <div class="stat"><div class="num">${fmt(gstCollected)}</div><div class="label">GST collected</div></div>
+      <div class="stat ${lowStock>0?'warn':''}"><div class="num">${lowStock}</div><div class="label">Low / out of stock</div></div>
+    </div>
+    <div class="admin-tabs">
+      <button data-tab="inventory" class="${adminTab==='inventory'?'active':''}">Inventory</button>
+      <button data-tab="orders" class="${adminTab==='orders'?'active':''}">Orders</button>
+      <button data-tab="store" class="${adminTab==='store'?'active':''}">Store Location</button>
+    </div>
+    <div id="adminTabBody"></div>
+  `;
+  document.getElementById('adminLogoutBtn').onclick = ()=>{ adminLoggedIn=false; renderAdmin(); };
+  view.querySelectorAll('.admin-tabs button').forEach(b=>{
+    b.onclick = ()=>{ adminTab=b.dataset.tab; renderAdmin(); };
+  });
+  if(adminTab==='inventory') renderInventoryTab();
+  else if(adminTab==='orders') renderOrdersTab();
+  else renderStoreTab();
+}
+
+function renderInventoryTab(){
+  const body = document.getElementById('adminTabBody');
+  body.innerHTML = `
+    <div class="admin-toolbar"><div></div><button class="btn btn-amber" id="addMedBtn">+ Add Medicine</button></div>
+    <table>
+      <thead><tr><th></th><th>Name</th><th>Category</th><th>Price</th><th>GST%</th><th>Stock</th><th>Actions</th></tr></thead>
+      <tbody>
+        ${medicines.map(m=>`
+          <tr>
+            <td>${m.image ? `<img src="${m.image}" style="width:32px;height:32px;border-radius:5px;object-fit:cover;">` : ''}</td>
+            <td>${m.name}<div style="font-size:11.5px;color:var(--ink-soft);">${m.mfr}</div></td>
+            <td>${m.category}</td>
+            <td>${fmt(m.price)}</td>
+            <td>${m.gstRate}%</td>
+            <td>${m.stock} ${m.stock<10?'<div class="low-flag">Low stock</div>':''}</td>
+            <td>
+              <div class="row-actions">
+                <button class="btn btn-outline" data-restock="${m.id}">+ Restock</button>
+                <button class="btn btn-outline" data-edit="${m.id}">Edit</button>
+                <button class="btn btn-danger" data-del="${m.id}">Delete</button>
+              </div>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+  document.getElementById('addMedBtn').onclick = ()=> openMedModal(null);
+  body.querySelectorAll('[data-restock]').forEach(b=>b.onclick=async ()=>{
+    const m = medicines.find(x=>x.id===b.dataset.restock);
+    const val = prompt(`Add how much stock to "${m.name}"? (currently ${m.stock})`, '10');
+    if(val===null) return;
+    const qty = parseInt(val);
+    if(isNaN(qty) || qty<=0){ showToast('Enter a valid quantity'); return; }
+    m.stock += qty;
+    await saveMedicines();
+    renderInventoryTab();
+    renderMedicineGrid();
+    showToast(`${qty} units added to ${m.name}`);
+  });
+  body.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openMedModal(b.dataset.edit));
+  body.querySelectorAll('[data-del]').forEach(b=>b.onclick=async ()=>{
+    if(!confirm('Delete this medicine?')) return;
+    medicines = medicines.filter(m=>m.id!==b.dataset.del);
+    await saveMedicines();
+    renderInventoryTab();
+    renderMedicineGrid();
+    renderCategoryChips();
+  });
+}
+
+let pendingMedImage = null;
+
+function setMedImagePreview(src){
+  const img = document.getElementById('medImagePreview');
+  const placeholder = document.getElementById('medImagePlaceholder');
+  if(src){ img.src = src; img.style.display='block'; placeholder.style.display='none'; }
+  else{ img.style.display='none'; placeholder.style.display='flex'; }
+}
+
+document.getElementById('medImageInput').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  try{
+    pendingMedImage = await readAndCompressImage(file);
+    setMedImagePreview(pendingMedImage);
+  }catch(err){ showToast('Could not read image'); }
+});
+
+function openMedModal(id){
+  editingMedId = id;
+  pendingMedImage = null;
+  document.getElementById('medImageInput').value = '';
+  const modal = document.getElementById('medModal');
+  document.getElementById('medModalTitle').textContent = id ? 'Edit Medicine' : 'Add Medicine';
+  if(id){
+    const m = medicines.find(x=>x.id===id);
+    document.getElementById('medName').value = m.name;
+    document.getElementById('medMfr').value = m.mfr;
+    document.getElementById('medCategory').value = m.category;
+    document.getElementById('medGst').value = m.gstRate;
+    document.getElementById('medPrice').value = m.price;
+    document.getElementById('medStock').value = m.stock;
+    pendingMedImage = m.image || null;
+    setMedImagePreview(m.image || null);
+  }else{
+    document.getElementById('medName').value='';
+    document.getElementById('medMfr').value='';
+    document.getElementById('medCategory').value='Tablets';
+    document.getElementById('medGst').value='12';
+    document.getElementById('medPrice').value='';
+    document.getElementById('medStock').value='';
+    setMedImagePreview(null);
+  }
+  modal.classList.add('show');
+}
+document.getElementById('cancelMed').onclick = ()=> document.getElementById('medModal').classList.remove('show');
+document.getElementById('saveMedBtn').onclick = async ()=>{
+  const name = document.getElementById('medName').value.trim();
+  const mfr = document.getElementById('medMfr').value.trim();
+  const category = document.getElementById('medCategory').value;
+  const gstRate = parseInt(document.getElementById('medGst').value);
+  const price = parseFloat(document.getElementById('medPrice').value);
+  const stock = parseInt(document.getElementById('medStock').value);
+  if(!name || !mfr || isNaN(price) || isNaN(stock)){ showToast('Please fill all fields correctly'); return; }
+  if(editingMedId){
+    const m = medicines.find(x=>x.id===editingMedId);
+    Object.assign(m, {name,mfr,category,gstRate,price,stock,image:pendingMedImage});
+  }else{
+    medicines.push({id:'m'+Date.now(), name, mfr, category, gstRate, price, stock, image:pendingMedImage});
+  }
+  await saveMedicines();
+  document.getElementById('medModal').classList.remove('show');
+  renderInventoryTab();
+  renderMedicineGrid();
+  renderCategoryChips();
+  showToast('Medicine saved');
+};
+
+function renderOrdersTab(){
+  const body = document.getElementById('adminTabBody');
+  if(orders.length===0){ body.innerHTML = '<div class="empty">No orders yet.</div>'; return; }
+  body.innerHTML = `
+    <table>
+      <thead><tr><th>Order</th><th>Customer</th><th>Delivery address</th><th>Items</th><th>Total</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        ${orders.map(o=>`
+          <tr>
+            <td>${o.id}<div style="font-size:11px;color:var(--ink-soft);">${new Date(o.date).toLocaleDateString()}</div></td>
+            <td>${o.customerName}<div style="font-size:11.5px;color:var(--ink-soft);">${o.phone}</div></td>
+            <td style="max-width:200px;">
+              ${o.address}
+              ${o.mapsUrl ? `<div><a class="gmaps-link" href="${o.mapsUrl}" target="_blank">📍 Navigate</a></div>` : ''}
+            </td>
+            <td>${o.items.length} item(s)</td>
+            <td>${fmt(o.total)}</td>
+            <td>
+              <select data-status="${o.id}" class="status-select">
+                ${['Pending','Packed','Dispatched','Delivered'].map(s=>`<option value="${s}" ${o.status===s?'selected':''}>${s}</option>`).join('')}
+              </select>
+            </td>
+            <td><button class="btn btn-outline" data-view="${o.id}">Invoice</button></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+  body.querySelectorAll('.status-select').forEach(sel=>{
+    sel.onchange = async ()=>{
+      const o = orders.find(x=>x.id===sel.dataset.status);
+      o.status = sel.value;
+      await saveOrders();
+      showToast('Order status updated');
+    };
+  });
+  body.querySelectorAll('[data-view]').forEach(b=>{
+    b.onclick = ()=> showInvoice(orders.find(o=>o.id===b.dataset.view));
+  });
+}
+
+function renderStoreTab(){
+  const body = document.getElementById('adminTabBody');
+  body.innerHTML = `
+    <div class="field"><label>Store address</label><textarea id="storeAddressInput" rows="2">${storeSettings.address||''}</textarea></div>
+    <div class="map-picked-address" id="storeMapPreview" style="${storeSettings.mapsUrl?'':'display:none;'}">
+      ${storeSettings.mapsUrl ? `📍 Pin set — <a class="gmaps-link" href="${storeSettings.mapsUrl}" target="_blank">view on Google Maps</a>` : ''}
+    </div>
+    <button class="btn btn-outline" style="margin-bottom:14px;" id="pickStoreLocationBtn">📍 Set exact location on map</button>
+    <button class="btn btn-primary" id="saveStoreBtn">Save Store Location</button>
+  `;
+  document.getElementById('pickStoreLocationBtn').onclick = ()=>{
+    mapPickerContext = 'store';
+    openMapModal();
+  };
+  document.getElementById('saveStoreBtn').onclick = async ()=>{
+    storeSettings.address = document.getElementById('storeAddressInput').value.trim();
+    if(pickedLocation && mapPickerContext==='store'){
+      storeSettings.lat = pickedLocation.lat;
+      storeSettings.lng = pickedLocation.lng;
+      storeSettings.mapsUrl = pickedLocation.mapsUrl;
+    }
+    await saveSettings();
+    renderStoreVisit();
+    showToast('Store location saved');
+  };
+}
+
+loadData();
+</script>
+</body>
+</html>
